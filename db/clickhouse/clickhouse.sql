@@ -22,3 +22,34 @@ CREATE TABLE IF NOT EXISTS users
 )
     ENGINE = MergeTree()
         ORDER BY id;
+
+CREATE TABLE IF NOT EXISTS insulin
+(
+    id UUID DEFAULT generateUUIDv4(),
+    user_id UUID,
+    insulinType Enum8('long'=2,'short'=1),
+    unit UInt8,
+    name String,
+    created_at DATETIME DEFAULT now()
+)
+    engine = MergeTree
+        ORDER BY id;
+
+CREATE TABLE food_log
+(
+    id UUID DEFAULT generateUUIDv4(),
+    user_id UUID,
+    meal_time DateTime,
+    food_name String,
+    carbs Float32,
+    protein Float32,
+    fat Float32,
+    glycemic_index UInt8,
+    calories Float32,
+    created_at DateTime DEFAULT now()
+)
+    ENGINE = MergeTree()
+        ORDER BY (user_id, meal_time);
+
+
+
