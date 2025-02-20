@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	sqlite2 "github.com/hell077/DiabetesHealthBot/db/sqlite"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -19,10 +20,9 @@ func sqlLiteMigrate() error {
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %w", err)
 	}
-	err = db.AutoMigrate(&User{}, SugarLevel{}, FoodEntry{}, InsulinEntry{}, ActivityEntry{}, HealthStatus{})
+	err = db.AutoMigrate(&sqlite2.User{})
 	if err != nil {
 		return fmt.Errorf("failed to auto migrate database: %w", err)
 	}
-
 	return nil
 }

@@ -3,6 +3,8 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"time"
 )
 
 const (
@@ -10,16 +12,16 @@ const (
 	longInsulin
 )
 
-type insulin struct {
+type Insulin struct {
 	insulinType string
 	name        string
 	unit        uint8
 }
 
-func (db *ClickhouseDB) NewInsulinLog(ins insulin, userID string) error {
+func (db *ClickhouseDB) NewInsulinLog(ins Insulin, userID string) error {
 	query := `
-		INSERT INTO insulin_log (user_id, insulinType, name, unit) 
-		VALUES (?, ?, ?, ?)
+		INSERT INTO insulin_log (user_id, insulinType, name, unit, created_at) 
+		VALUES (?, ?, ?, ?, now())
 	`
 	ctx := context.Background()
 	batch, err := db.conn.PrepareBatch(ctx, query)
@@ -36,4 +38,92 @@ func (db *ClickhouseDB) NewInsulinLog(ins insulin, userID string) error {
 	}
 
 	return nil
+}
+
+type InsulinLog struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	CreatedAt   time.Time
+	InsulinType uint8
+	Unit        uint8
+}
+
+type DayInsulinLog struct {
+	Day       time.Time
+	TotalUnit int32
+}
+
+// Получение логов за день
+func (db *ClickhouseDB) GetInsulinLogByDay(userID uuid.UUID, date time.Time) ([]InsulinLog, error) {
+	query := `
+    	SELECT id, user_id, created_at, insulinType, unit 
+    	FROM insulin_log 
+    	WHERE user_id = ? 
+    	AND created_at >= toDate(?) 
+    	AND created_at < toDate(?) + 1
+	`
+	ctx := context.Background()
+	rows, err := db.conn.Query(ctx, query, userID, date, date)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []InsulinLog
+	for rows.Next() {
+		var log InsulinLog
+		if err := rows.Scan(&log.ID, &log.UserID, &log.CreatedAt, &log.InsulinType, &log.Unit); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		logs = append(logs, log)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return logs, nil
+}
+
+// Получение среднего значения инсулина за месяц по каждому дню
+func (db *ClickhouseDB) GetInsulinLogByMonth(userID uuid.UUID, date time.Time) ([]InsulinLog, error) {
+	query := `
+			SELECT 
+    		toDate(created_at) AS day, 
+    		SUM(unit) AS total_unit
+			FROM insulin_log
+			WHERE user_id = ?
+  			AND created_at >= toStartOfMonth(toDate(?))
+  			AND created_at < toStartOfMonth(toDate(?)) + INTERVAL (1) MONTH
+			GROUP BY day
+			ORDER BY day;
+		`
+
+	ctx := context.Background()
+	rows, err := db.conn.Query(ctx, query, userID, date, date)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []InsulinLog
+	for rows.Next() {
+		var log InsulinLog
+		var avgUnit float64
+		var day time.Time
+
+		if err := rows.Scan(&day, &avgUnit, &log.ID, &log.UserID, &log.InsulinType); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		log.CreatedAt = day
+		log.Unit = uint8(avgUnit) // Приведение среднего значения к uint8
+		logs = append(logs, log)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return logs, nil
 }
