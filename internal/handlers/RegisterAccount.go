@@ -16,16 +16,24 @@ func RegisterAccount(c telebot.Context) error {
 
 	c.Bot().Handle(telebot.OnText, func(ctx telebot.Context) error {
 		if ctx.Text() == "🔙 Назад" {
-			return ctx.Send("Вы вернулись в главное меню.")
+			return StartHandle(ctx)
 		}
 
-		inputText := ctx.Text()                 // Текст, введённый пользователем
-		userRecord := sqlite.User{}             // Пустая запись пользователя для базы
-		senderInfo := ctx.Sender()              // Данные о пользователе, отправившем сообщение
-		telegramID := senderInfo.ID             // Уникальный ID пользователя в Telegram
-		telegramUsername := senderInfo.Username // Username (@...) пользователя
+		inputText := ctx.Text()
+		userRecord := sqlite.User{}
+		senderInfo := ctx.Sender()
+		telegramID := senderInfo.ID
+		telegramUsername := senderInfo.Username
 
-		if err = userRecord.NewUser(sqlite.DB, telegramUsername, inputText, telegramID); err != nil {
+		exists, err := userRecord.ExistsByTelegramID(sqlite.DB, telegramID)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return ctx.Send("Вы уже зарегистрированы!")
+		}
+
+		if err := userRecord.NewUser(sqlite.DB, telegramUsername, inputText, telegramID); err != nil {
 			return err
 		}
 
@@ -33,7 +41,7 @@ func RegisterAccount(c telebot.Context) error {
 	})
 
 	c.Bot().Handle(&btnBack, func(ctx telebot.Context) error {
-		return ctx.Send("Вы вернулись в главное меню.")
+		return StartHandle(ctx)
 	})
 
 	return nil

@@ -26,3 +26,11 @@ func (u *User) DeleteUser(db *gorm.DB) error {
 	tx.Commit()
 	return nil
 }
+
+func (u *User) ExistsByTelegramID(db *gorm.DB, tgID int64) (bool, error) {
+	var count int64
+	if err := db.Model(&User{}).Where("tg_id = ?", tgID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
