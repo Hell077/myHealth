@@ -6,6 +6,7 @@ import (
 	"github.com/hell077/DiabetesHealthBot/internal"
 	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 
 var (
