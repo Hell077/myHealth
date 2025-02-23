@@ -17,7 +17,6 @@ func main() {
 	}
 	err = db.Migrate()
 	if err != nil {
-		log.Fatal("Error migrating database")
+		log.Fatalf("Error migrating database: %v", err)
 	}
-	
 }
