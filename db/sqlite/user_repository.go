@@ -2,13 +2,18 @@ package sqlite
 
 import "gorm.io/gorm"
 
-func (u *User) NewUser(db *gorm.DB) error {
-	tx := db.Begin()
-	if err := tx.Create(&User{}).Error; err != nil {
-		tx.Rollback()
+func (u *User) NewUser(db *gorm.DB, username, name string, tgID int64) error {
+	user := User{
+		TGID:     tgID,
+		Username: username,
+		Name:     name,
+	}
+
+	if err := db.Create(&user).Error; err != nil {
 		return err
 	}
-	tx.Commit()
+
+	*u = user
 	return nil
 }
 

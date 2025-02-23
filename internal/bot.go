@@ -21,10 +21,16 @@ func RunBot() error {
 	if err != nil {
 		return err
 	}
+
 	RegisterHandlers(bot)
+
+	bot.Start()
 	return nil
 }
 
 func RegisterHandlers(bot *telebot.Bot) {
+	bot.Handle("/help", handlers.HelpHandler)
 	bot.Handle("/start", handlers.StartHandle)
+	bot.Handle("👤 Создать аккаунт", handlers.RegisterAccount)
+
 }

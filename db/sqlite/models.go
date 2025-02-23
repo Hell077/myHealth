@@ -6,7 +6,8 @@ import (
 
 type User struct {
 	ID        uint   `gorm:"primaryKey"`
-	TGID      int64  `gorm:"uniqueIndex"` // ID пользователя в Telegram
-	Username  string `gorm:"size:100"`    // Никнейм пользователя
+	TGID      int64  `gorm:"uniqueIndex"`
+	Username  string `gorm:"size:100"`
+	Name      string `gorm:"size:100"`
 	CreatedAt time.Time
 }
