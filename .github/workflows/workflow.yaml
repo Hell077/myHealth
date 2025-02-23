@@ -24,7 +24,7 @@ jobs:
         run: go mod tidy
 
       - name: Run application
-        run: go run main.go
+        run: go run cmd/app/main.go
         env:
           CLICKHOUSE_DSN: ${{ secrets.CLICKHOUSE_DSN }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
