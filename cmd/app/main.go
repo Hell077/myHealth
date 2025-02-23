@@ -13,7 +13,11 @@ var (
 )
 
 func main() {
-	err = godotenv.Load("config/.env")
+	if os.Getenv("GITHUB_ACTIONS") == "" {
+		if err := godotenv.Load("config/.env"); err != nil {
+			log.Println("Warning: .env file not found, using system environment variables")
+		}
+	}
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
