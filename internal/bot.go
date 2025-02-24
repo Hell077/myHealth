@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"github.com/hell077/DiabetesHealthBot/db/clickhouse"
 	"github.com/hell077/DiabetesHealthBot/internal/handlers"
 	"gopkg.in/telebot.v3"
 	"os"
@@ -35,5 +36,7 @@ func RegisterHandlers(bot *telebot.Bot) {
 	bot.Handle("🔓 Войти в аккаунт", handlers.AuthHandler)
 	bot.Handle("💉 Записать дозу инсулина", handlers.RecordInsulinEntryHandler)
 	bot.Handle("🩸 Записать уровень сахара", handlers.RecordBloodSugarHandler)
-	bot.Handle("🍔 Записать прием пищи", handlers.RecordFoodEntryHandler)
+	bot.Handle("🍔 Записать прием пищи", func(ctx telebot.Context) error {
+		return handlers.RecordFoodEntryHandler(ctx, bot, clickhouse.CH)
+	})
 }

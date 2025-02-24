@@ -15,6 +15,8 @@ const (
 	random
 )
 
+var Db *ClickhouseDB
+
 func (db *ClickhouseDB) NewSugarLog(userID uuid.UUID, sugarLvl float32, mealTime Status) error {
 	query := `
 		INSERT INTO sugar_log (user_id, sugar_value, meal_time) 

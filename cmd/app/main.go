@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hell077/DiabetesHealthBot/db"
+	"github.com/hell077/DiabetesHealthBot/db/clickhouse"
 	"github.com/hell077/DiabetesHealthBot/db/sqlite"
 	"github.com/hell077/DiabetesHealthBot/internal"
 	"github.com/joho/godotenv"
@@ -27,6 +28,7 @@ func main() {
 		log.Fatalf("Error migrating database: %v", err)
 	}
 	err = sqlite.InitDatabase()
+	err = clickhouse.InitCH()
 	if err != nil {
 		log.Fatalf("Error initializing database: %v", err)
 	}

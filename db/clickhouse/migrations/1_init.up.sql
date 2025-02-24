@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS sugarLevel
+CREATE TABLE IF NOT EXISTS sugar_log
 (
     id            UUID DEFAULT generateUUIDv4(),  -- Уникальный идентификатор записи
     user_id       UUID,                           -- ID пользователя (из таблицы пользователей)
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users
     ENGINE = MergeTree()
         ORDER BY id;
 
-CREATE TABLE IF NOT EXISTS insulin
+CREATE TABLE IF NOT EXISTS insulin_log
 (
     id UUID DEFAULT generateUUIDv4(),
     user_id UUID,
@@ -35,17 +35,16 @@ CREATE TABLE IF NOT EXISTS insulin
     engine = MergeTree
         ORDER BY id;
 
-CREATE TABLE food_log
+CREATE TABLE if not exists food_log
 (
     id UUID DEFAULT generateUUIDv4(),
     user_id UUID,
+    weight Float32,
     meal_time DateTime,
     food_name String,
     carbs Float32,
     protein Float32,
     fat Float32,
-    glycemic_index UInt8,
-    calories Float32,
     created_at DateTime DEFAULT now()
 )
     ENGINE = MergeTree()

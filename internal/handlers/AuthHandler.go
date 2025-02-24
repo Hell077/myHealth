@@ -8,19 +8,21 @@ import (
 func AuthHandler(ctx telebot.Context) error {
 	userID := ctx.Sender().ID
 	user := sqlite.User{}
+
 	if status, err := user.ExistsByTelegramID(sqlite.DB, userID); err != nil {
-		if e := ctx.Send("Произошла ошибка на сервере"); e != nil {
-			return e
-		}
-	} else if status == false {
-		_ = ctx.Send("Пользователь не найден, зарегистрируйтесь или войдите как гость")
+		return ctx.Send("Произошла ошибка на сервере")
+	} else if !status {
 		Markup.Reply(
-			Markup.Row(AuthBtn),
-			Markup.Row(GuestBtn),
+			Markup.Row(RegBtn, AuthBtn),
+			Markup.Row(GuestBtn, HelpBtn),
 		)
-	} else if status {
-		_ = ctx.Send("Успешный вход")
-		Markup.Reply()
+		return ctx.Send("Пользователь не найден, зарегистрируйтесь или войдите как гость", Markup)
 	}
-	return nil
+
+	Markup.Reply(
+		Markup.Row(RecordFoodEntry, RecordInsulinEntry, RecordBloodSugar),
+		Markup.Row(GetDailyStats, GetMonthStats),
+		Markup.Row(Settings),
+	)
+	return ctx.Send("Добро пожаловать! Выберите действие:", Markup)
 }

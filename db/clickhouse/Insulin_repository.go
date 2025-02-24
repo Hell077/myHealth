@@ -53,7 +53,6 @@ type DayInsulinLog struct {
 	TotalUnit int32
 }
 
-// Получение логов за день
 func (db *ClickhouseDB) GetInsulinLogByDay(userID uuid.UUID, date time.Time) ([]InsulinLog, error) {
 	query := `
     	SELECT id, user_id, created_at, insulinType, unit 
