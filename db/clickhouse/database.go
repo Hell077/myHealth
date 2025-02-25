@@ -12,9 +12,11 @@ import (
 var CH *sql.DB
 
 func InitCH() error {
-	dsn := fmt.Sprintf("clickhouse://localhost:9000?username=%s&password=%s&x-multi-statement=true", os.Getenv("CLICKHOUSE_USER"), os.Getenv("CLICKHOUSE_PASS"))
+	dsn := fmt.Sprintf("clickhouse://localhost:9000?username=%s&password=%s",
+		os.Getenv("CLICKHOUSE_USER"), os.Getenv("CLICKHOUSE_PASS"))
 
-	CH, err := sql.Open("clickhouse", dsn)
+	var err error
+	CH, err = sql.Open("clickhouse", dsn)
 	if err != nil {
 		return err
 	}
