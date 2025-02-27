@@ -20,6 +20,7 @@ func main() {
 			log.Println("Warning: .env file not found, using system environment variables")
 		}
 	}
+
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -36,3 +37,4 @@ func main() {
 		log.Fatalf("Error running bot: %v", err)
 	}
 }
+

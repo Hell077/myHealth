@@ -35,7 +35,9 @@ func RegisterHandlers(bot *telebot.Bot) {
 	bot.Handle("👤 Создать аккаунт", handlers.RegisterAccount)
 	bot.Handle("🔓 Войти в аккаунт", handlers.AuthHandler)
 	bot.Handle("💉 Записать дозу инсулина", handlers.RecordInsulinEntryHandler)
-	bot.Handle("🩸 Записать уровень сахара", handlers.RecordBloodSugarHandler)
+	bot.Handle("🩸 Записать уровень сахара", func(ctx telebot.Context) error {
+		return handlers.RecordBloodSugarHandler(ctx, bot, clickhouse.CH)
+	})
 	bot.Handle("🍔 Записать прием пищи", func(ctx telebot.Context) error {
 		return handlers.RecordFoodEntryHandler(ctx, bot, clickhouse.CH)
 	})
