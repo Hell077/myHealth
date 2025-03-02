@@ -34,7 +34,11 @@ func RegisterHandlers(bot *telebot.Bot) {
 	bot.Handle("/start", handlers.StartHandle)
 	bot.Handle("👤 Создать аккаунт", handlers.RegisterAccount)
 	bot.Handle("🔓 Войти в аккаунт", handlers.AuthHandler)
-	bot.Handle("💉 Записать дозу инсулина", handlers.RecordInsulinEntryHandler)
+	bot.Handle("💉 Записать дозу инсулина", func(ctx telebot.Context) error {
+		return handlers.RecordInsulinEntryHandler(ctx, bot, clickhouse.CH)
+	})
+	bot.Handle("В меню🔙", handlers.ToMenuBtn)
+	bot.Handle("⚙ Настройки", handlers.SettingHandler)
 	bot.Handle("🩸 Записать уровень сахара", func(ctx telebot.Context) error {
 		return handlers.RecordBloodSugarHandler(ctx, bot, clickhouse.CH)
 	})

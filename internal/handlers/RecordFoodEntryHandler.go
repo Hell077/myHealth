@@ -22,9 +22,12 @@ type FoodLog struct {
 
 func RecordFoodEntryHandler(ctx telebot.Context, b *telebot.Bot, db *sql.DB) error {
 	userID := ctx.Sender().ID
+	Markup.Reply(
+		Markup.Row(ToMainMenu),
+	)
 	foodEntries[userID] = make(map[string]string)
 
-	_ = ctx.Send("Введите название блюда:")
+	_ = ctx.Send("Введите название блюда:", Markup)
 	b.Handle(telebot.OnText, func(ctx telebot.Context) error {
 		return recordFoodName(ctx, b, db)
 	})

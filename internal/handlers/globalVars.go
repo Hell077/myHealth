@@ -25,4 +25,6 @@ var (
 
 	// Настройки
 	Settings = Markup.Text("⚙ Настройки")
+
+	ToMainMenu = Markup.Text("В меню🔙")
 )

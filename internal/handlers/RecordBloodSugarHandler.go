@@ -21,9 +21,12 @@ type SugarLog struct {
 
 func RecordBloodSugarHandler(ctx telebot.Context, b *telebot.Bot, db *sql.DB) error {
 	userID := ctx.Sender().ID
+	Markup.Reply(
+		Markup.Row(ToMainMenu),
+	)
 	sugarEntries[userID] = make(map[string]string)
 
-	_ = ctx.Send("Введите уровень сахара в крови (ммоль/л):")
+	_ = ctx.Send("Введите уровень сахара в крови (ммоль/л):", Markup)
 	b.Handle(telebot.OnText, func(ctx telebot.Context) error {
 		return recordSugarValue(ctx, b, db)
 	})
@@ -92,10 +95,11 @@ func saveBloodSugarLog(ctx telebot.Context, b *telebot.Bot, db *sql.DB) error {
 		mealTimeText = "Неизвестно"
 	}
 
-	_ = ctx.Send(fmt.Sprintf(
+	message := fmt.Sprintf(
 		"✅ Запись сохранена!\n\n🩸 Уровень сахара: %.2f ммоль/л\n🍽 Время измерения: %s\n📅 Дата: %s",
 		sugarValue, mealTimeText, measurementTime.Format("2006-01-02 15:04:05"),
-	))
+	)
+	_ = ctx.Send(message)
 
 	delete(sugarEntries, userID)
 	return nil

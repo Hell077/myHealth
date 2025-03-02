@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/hell077/DiabetesHealthBot/db/clickhouse"
 	"github.com/hell077/DiabetesHealthBot/db/sqlite"
 	"gopkg.in/telebot.v3"
 )
@@ -36,7 +37,7 @@ func RegisterAccount(c telebot.Context) error {
 		if err := userRecord.NewUser(sqlite.DB, telegramUsername, inputText, telegramID); err != nil {
 			return err
 		}
-
+		clickhouse.CH.Exec("INSERT INTO health_analytics.users (tgID) values (?)", telegramID)
 		return ctx.Send("Ваше имя сохранено: " + inputText)
 	})
 
