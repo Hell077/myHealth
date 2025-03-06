@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
 	"time"
@@ -42,7 +43,7 @@ func (db *ClickhouseDB) NewInsulinLog(ins Insulin, userID string) error {
 
 type InsulinLog struct {
 	ID          uuid.UUID
-	UserID      uuid.UUID
+	UserID      uint64
 	CreatedAt   time.Time
 	InsulinType uint8
 	Unit        uint8
@@ -53,16 +54,17 @@ type DayInsulinLog struct {
 	TotalUnit int32
 }
 
-func (db *ClickhouseDB) GetInsulinLogByDay(userID uuid.UUID, date time.Time) ([]InsulinLog, error) {
+func GetInsulinLogByDay(db *sql.DB, userID uint64, date time.Time) ([]InsulinLog, error) {
 	query := `
     	SELECT id, user_id, created_at, insulinType, unit 
-    	FROM insulin_log 
+    	FROM health_analytics.insulin_log 
     	WHERE user_id = ? 
     	AND created_at >= toDate(?) 
     	AND created_at < toDate(?) + 1
 	`
+
 	ctx := context.Background()
-	rows, err := db.conn.Query(ctx, query, userID, date, date)
+	rows, err := db.QueryContext(ctx, query, userID, date, date)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
@@ -84,13 +86,13 @@ func (db *ClickhouseDB) GetInsulinLogByDay(userID uuid.UUID, date time.Time) ([]
 	return logs, nil
 }
 
-// Получение среднего значения инсулина за месяц по каждому дню
-func (db *ClickhouseDB) GetInsulinLogByMonth(userID uuid.UUID, date time.Time) ([]InsulinLog, error) {
+// GetInsulinLogByMonth - получение среднего значения инсулина за месяц по каждому дню
+func GetInsulinLogByMonth(db *sql.DB, userID uint64, date time.Time) ([]InsulinLog, error) {
 	query := `
 			SELECT 
     		toDate(created_at) AS day, 
     		SUM(unit) AS total_unit
-			FROM insulin_log
+			FROM health_analytics.insulin_log
 			WHERE user_id = ?
   			AND created_at >= toStartOfMonth(toDate(?))
   			AND created_at < toStartOfMonth(toDate(?)) + INTERVAL (1) MONTH
@@ -99,7 +101,7 @@ func (db *ClickhouseDB) GetInsulinLogByMonth(userID uuid.UUID, date time.Time) (
 		`
 
 	ctx := context.Background()
-	rows, err := db.conn.Query(ctx, query, userID, date, date)
+	rows, err := db.QueryContext(ctx, query, userID, date, date)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
@@ -111,7 +113,7 @@ func (db *ClickhouseDB) GetInsulinLogByMonth(userID uuid.UUID, date time.Time) (
 		var avgUnit float64
 		var day time.Time
 
-		if err := rows.Scan(&day, &avgUnit, &log.ID, &log.UserID, &log.InsulinType); err != nil {
+		if err := rows.Scan(&day, &avgUnit); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 

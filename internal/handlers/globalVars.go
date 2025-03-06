@@ -24,7 +24,6 @@ var (
 	GetMonthStats = Markup.Text("📊 Статистика за месяц")
 
 	// Настройки
-	Settings = Markup.Text("⚙ Настройки")
-
+	Settings   = Markup.Text("⚙ Настройки")
 	ToMainMenu = Markup.Text("В меню🔙")
 )
