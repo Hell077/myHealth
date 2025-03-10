@@ -1,7 +1,6 @@
 package clickhouse
 
 import (
-	"database/sql"
 	"github.com/google/uuid"
 	"time"
 )
@@ -14,5 +13,3 @@ type Eat struct {
 	foodName           string
 	carb, protein, fat float32
 }
-
-func getFoodLogByDay(db *sql.DB, userID uint64, date time.Time)

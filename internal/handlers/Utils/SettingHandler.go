@@ -1,9 +1,10 @@
-package handlers
+package Utils
 
 import (
 	"database/sql"
 	"fmt"
 	"github.com/hell077/DiabetesHealthBot/db/clickhouse"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers/Auth"
 
 	"github.com/google/uuid"
 	"gopkg.in/telebot.v3"
@@ -38,5 +39,5 @@ func getUserUUID(tgID int64) (uuid.UUID, error) {
 }
 
 func ToMenuBtn(ctx telebot.Context) error {
-	return AuthHandler(ctx)
+	return Auth.AuthHandler(ctx)
 }

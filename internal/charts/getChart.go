@@ -2,84 +2,92 @@ package charts
 
 import (
 	"bytes"
-	"database/sql"
 	"errors"
-	"github.com/google/uuid"
-	"iter"
-	"sync"
-	"time"
+	"fmt"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
+	"image/color"
 )
 
-var CurrentMonth = int8(time.Now().Month())
-var CurrentYear = int16(time.Now().Year())
+func DrawChart[T int | uint16](chartType string, values []float64, timeValue T) (*bytes.Buffer, error) {
+	var data interface{}
 
-var DailyChartPool = sync.Pool{
-	New: func() any {
-		return &DailyChart{}
-	},
-}
+	switch chartType {
+	case "daily":
+		day, ok := any(timeValue).(int)
+		if !ok {
+			return nil, errors.New("invalid type for daily chart (expected int)")
+		}
+		dc := DailyChartPool.Get().(*DailyChart)
+		dc.value = values
+		dc.hours = len(values)
+		dc.day = day
+		data = dc
 
-var Buffer = sync.Pool{
-	New: func() interface{} {
-		return new(bytes.Buffer)
-	},
-}
+	case "monthly":
+		year, ok := any(timeValue).(uint16)
+		if !ok {
+			return nil, errors.New("invalid type for monthly chart (expected uint16)")
+		}
+		mc := MonthChartPool.Get().(*MonthChart)
+		mc.value = values
+		mc.days = len(values)
+		mc.year = year
+		data = mc
 
-var MonthChartPool = sync.Pool{
-	New: func() any {
-		return &MonthChart{}
-	},
-}
-
-type DailyChart struct {
-	value []float64
-	hours []time.Time
-}
-
-type MonthChart struct {
-	value []float64
-	days  []int
-	year  uint16
-}
-
-func newDailyChart(id uuid.UUID, value []float64) (*DailyChart, error) {
-	chAny := DailyChartPool.Get()
-	ch, ok := chAny.(*DailyChart)
-	if !ok {
-		return nil, errors.New("failed to get DailyChart from pool")
+	default:
+		return nil, fmt.Errorf("unknown chart type: %s", chartType)
 	}
-	ch.hours = getHourlyTimeRange()
-	ch.value = value
-	return ch, nil
-}
 
-func newMonthlyChart(id uuid.UUID, value []float64, month, year uint8) (*MonthChart, error) {
-	chAny := MonthChartPool.Get()
-	ch, ok := chAny.(*MonthChart)
-	if !ok {
-		return nil, errors.New("failed to get DailyChart from pool")
-	}
-	var curMonth []int
-	for num := range getVal(daysInMonth(CurrentMonth, CurrentYear)) {
-		curMonth = append(curMonth, num)
-	}
-	ch.days = curMonth
-	ch.value = value
-	return ch, nil
-}
+	// Создание графика
+	p := plot.New()
+	p.X.Label.Text = "Time"
+	p.Y.Label.Text = "Value"
 
-func
+	var points plotter.XYs
+	switch v := data.(type) {
+	case *DailyChart:
+		p.Title.Text = fmt.Sprintf("Daily Chart (Day %d)", v.day)
+		points = make(plotter.XYs, len(v.value))
+		for i := range v.value {
+			points[i].X = float64(i)
+			points[i].Y = v.value[i]
+		}
 
-func GetMonthChart[T any](id uuid.UUID,db *sql.DB, fn func(*sql.Rows,int64,time.Time)(T,error)) ([]T,error) {
-	obj, err := newMonthlyChart(id)
-}
-
-func getVal(n int) iter.Seq[int] {
-	return func(yield func(int) bool) {
-		for i := 1; i <= n; i++ {
-			if !yield(i) {
-				return
-			}
+	case *MonthChart:
+		p.Title.Text = fmt.Sprintf("Monthly Chart (%d)", v.year)
+		points = make(plotter.XYs, len(v.value))
+		for i := range v.value {
+			points[i].X = float64(i + 1)
+			points[i].Y = v.value[i]
 		}
 	}
+
+	line, err := plotter.NewLine(points)
+	if err != nil {
+		return nil, err
+	}
+	line.Color = color.RGBA{R: 0, G: 0, B: 0, A: 100}
+	p.Add(line)
+
+	buf := BufferPool.Get().(*bytes.Buffer)
+	buf.Reset()
+
+	w, err := p.WriterTo(6*vg.Inch, 4*vg.Inch, "png")
+	if err != nil {
+		return nil, err
+	}
+	if _, err := w.WriteTo(buf); err != nil {
+		return nil, err
+	}
+
+	switch chartType {
+	case "daily":
+		DailyChartPool.Put(data)
+	case "monthly":
+		MonthChartPool.Put(data)
+	}
+
+	return buf, nil
 }

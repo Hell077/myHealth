@@ -1,8 +1,9 @@
-package handlers
+package Records
 
 import (
 	"database/sql"
 	"fmt"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers"
 	"strconv"
 	"time"
 
@@ -21,12 +22,12 @@ type SugarLog struct {
 
 func RecordBloodSugarHandler(ctx telebot.Context, b *telebot.Bot, db *sql.DB) error {
 	userID := ctx.Sender().ID
-	Markup.Reply(
-		Markup.Row(ToMainMenu),
+	handlers.Markup.Reply(
+		handlers.Markup.Row(handlers.ToMainMenu),
 	)
 	sugarEntries[userID] = make(map[string]string)
 
-	_ = ctx.Send("Введите уровень сахара в крови (ммоль/л):", Markup)
+	_ = ctx.Send("Введите уровень сахара в крови (ммоль/л):", handlers.Markup)
 	b.Handle(telebot.OnText, func(ctx telebot.Context) error {
 		return recordSugarValue(ctx, b, db)
 	})

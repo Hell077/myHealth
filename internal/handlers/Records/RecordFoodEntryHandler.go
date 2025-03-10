@@ -1,8 +1,9 @@
-package handlers
+package Records
 
 import (
 	"database/sql"
 	"fmt"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers"
 	"gopkg.in/telebot.v3"
 	"strconv"
 	"time"
@@ -22,12 +23,12 @@ type FoodLog struct {
 
 func RecordFoodEntryHandler(ctx telebot.Context, b *telebot.Bot, db *sql.DB) error {
 	userID := ctx.Sender().ID
-	Markup.Reply(
-		Markup.Row(ToMainMenu),
+	handlers.Markup.Reply(
+		handlers.Markup.Row(handlers.ToMainMenu),
 	)
 	foodEntries[userID] = make(map[string]string)
 
-	_ = ctx.Send("Введите название блюда:", Markup)
+	_ = ctx.Send("Введите название блюда:", handlers.Markup)
 	b.Handle(telebot.OnText, func(ctx telebot.Context) error {
 		return recordFoodName(ctx, b, db)
 	})

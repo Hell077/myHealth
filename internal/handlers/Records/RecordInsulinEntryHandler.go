@@ -1,8 +1,9 @@
-package handlers
+package Records
 
 import (
 	"database/sql"
 	"fmt"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers"
 	"strconv"
 	"time"
 
@@ -22,8 +23,8 @@ var insulinEntries = make(map[int64]InsulinEntry)
 // Обработчик выбора инсулина
 func RecordInsulinEntryHandler(ctx telebot.Context, bot *telebot.Bot, db *sql.DB) error {
 	userID := ctx.Sender().ID
-	Markup.Reply(
-		Markup.Row(ToMainMenu),
+	handlers.Markup.Reply(
+		handlers.Markup.Row(handlers.ToMainMenu),
 	)
 	insulinKeyboard := &telebot.ReplyMarkup{}
 	btnLong := insulinKeyboard.Data("Длинный инсулин", "insulin_long")
@@ -33,7 +34,7 @@ func RecordInsulinEntryHandler(ctx telebot.Context, bot *telebot.Bot, db *sql.DB
 		insulinKeyboard.Row(btnLong, btnShort),
 	)
 
-	_ = ctx.Send("Выберите тип инсулина:", insulinKeyboard, Markup)
+	_ = ctx.Send("Выберите тип инсулина:", insulinKeyboard, handlers.Markup)
 
 	bot.Handle(&btnLong, func(ctx telebot.Context) error {
 		insulinEntries[userID] = InsulinEntry{

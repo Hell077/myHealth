@@ -1,23 +1,24 @@
-package handlers
+package Auth
 
 import (
 	"github.com/hell077/DiabetesHealthBot/db/clickhouse"
 	"github.com/hell077/DiabetesHealthBot/db/sqlite"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers"
 	"gopkg.in/telebot.v3"
 )
 
 func RegisterAccount(c telebot.Context) error {
-	btnBack := Markup.Text("🔙 Назад")
-	Markup.Reply(Markup.Row(btnBack))
+	btnBack := handlers.Markup.Text("🔙 Назад")
+	handlers.Markup.Reply(handlers.Markup.Row(btnBack))
 
-	err := c.Send("Введите свое имя:", Markup)
+	err := c.Send("Введите свое имя:", handlers.Markup)
 	if err != nil {
 		return err
 	}
 
 	c.Bot().Handle(telebot.OnText, func(ctx telebot.Context) error {
 		if ctx.Text() == "🔙 Назад" {
-			return StartHandle(ctx)
+			return handlers.StartHandle(ctx)
 		}
 
 		inputText := ctx.Text()
@@ -38,11 +39,16 @@ func RegisterAccount(c telebot.Context) error {
 			return err
 		}
 		clickhouse.CH.Exec("INSERT INTO health_analytics.users (tgID) values (?)", telegramID)
-		return ctx.Send("Ваше имя сохранено: " + inputText)
+		handlers.Markup.Reply(
+			handlers.Markup.Row(handlers.RecordFoodEntry, handlers.RecordInsulinEntry, handlers.RecordBloodSugar),
+			handlers.Markup.Row(handlers.GetDailyStats, handlers.GetMonthStats),
+			handlers.Markup.Row(handlers.Settings),
+		)
+		return ctx.Send("Ваше имя сохранено: "+inputText, handlers.Markup)
 	})
 
 	c.Bot().Handle(&btnBack, func(ctx telebot.Context) error {
-		return StartHandle(ctx)
+		return handlers.StartHandle(ctx)
 	})
 
 	return nil

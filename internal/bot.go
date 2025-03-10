@@ -4,6 +4,9 @@ import (
 	"errors"
 	"github.com/hell077/DiabetesHealthBot/db/clickhouse"
 	"github.com/hell077/DiabetesHealthBot/internal/handlers"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers/Auth"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers/Records"
+	"github.com/hell077/DiabetesHealthBot/internal/handlers/Utils"
 	"gopkg.in/telebot.v3"
 	"os"
 	"time"
@@ -32,19 +35,19 @@ func RunBot() error {
 func RegisterHandlers(bot *telebot.Bot) {
 	bot.Handle("/help", handlers.HelpHandler)
 	bot.Handle("/start", handlers.StartHandle)
-	bot.Handle("👤 Создать аккаунт", handlers.RegisterAccount)
-	bot.Handle("🔓 Войти в аккаунт", handlers.AuthHandler)
+	bot.Handle("👤 Создать аккаунт", Auth.RegisterAccount)
+	bot.Handle("🔓 Войти в аккаунт", Auth.AuthHandler)
 
-	bot.Handle("В меню🔙", handlers.ToMenuBtn)
-	bot.Handle("⚙ Настройки", handlers.SettingHandler)
+	bot.Handle("В меню🔙", Utils.ToMenuBtn)
+	bot.Handle("⚙ Настройки", Utils.SettingHandler)
 
 	bot.Handle("🩸 Записать уровень сахара", func(ctx telebot.Context) error {
-		return handlers.RecordBloodSugarHandler(ctx, bot, clickhouse.CH)
+		return Records.RecordBloodSugarHandler(ctx, bot, clickhouse.CH)
 	})
 	bot.Handle("🍔 Записать прием пищи", func(ctx telebot.Context) error {
-		return handlers.RecordFoodEntryHandler(ctx, bot, clickhouse.CH)
+		return Records.RecordFoodEntryHandler(ctx, bot, clickhouse.CH)
 	})
 	bot.Handle("💉 Записать дозу инсулина", func(ctx telebot.Context) error {
-		return handlers.RecordInsulinEntryHandler(ctx, bot, clickhouse.CH)
+		return Records.RecordInsulinEntryHandler(ctx, bot, clickhouse.CH)
 	})
 }
