@@ -10,14 +10,6 @@ import (
 	"time"
 )
 
-type Status int
-
-const (
-	beforeMeal Status = iota + 1
-	afterMeal
-	random
-)
-
 type SugarLog struct {
 	Id       uuid.UUID
 	UserID   uint64
